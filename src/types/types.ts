@@ -7,9 +7,3 @@ export interface IReq<T = void> extends Request {
 export interface IRes extends Response {}
 
 export interface INext extends NextFunction {}
-
-// export interface MiddlewareParams {
-//   req: MiddlewareReq;
-//   res: MiddlewareRes;
-//   next: void;
-// }
