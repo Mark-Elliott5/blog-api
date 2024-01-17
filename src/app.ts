@@ -1,13 +1,10 @@
-import createError, { HttpError } from 'http-errors';
+// import { HttpError, CreateHttpError } from 'http-errors';
 import express from 'express';
 import path from 'path';
 import logger from 'morgan';
 import 'dotenv/config';
 import apiRouterV1 from './routes/v1';
 import { INext, IReq, IRes } from './types/types';
-
-// import indexRouter from './routes/index';
-// import usersRouter from './routes/users';
 
 const app = express();
 
@@ -21,22 +18,36 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1', apiRouterV1);
-// app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
-app.use((req: IReq, res: IRes, next: INext) => {
-  next(createError(404));
+// Catch 404
+app.use((req: IReq, res: IRes) => {
+  res.status(404).json({
+    status: 404,
+    error: 'Not Found',
+    message: 'The requested resource could not be found on the server.',
+  });
 });
 
 // error handler
-app.use((err: HttpError, req: IReq, res: IRes): void => {
+// needs 4 args to register as error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, req: IReq, res: IRes, next: INext): void => {
   // set locals, only providing error in development
+  console.log('Error caught');
+  console.log(err);
+
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.status(500).json({ error: err });
 
   // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  // if (err instanceof HttpError) {
+  //   console.log(err);
+  //   res.status(err.status).json({ error: err });
+  // } else {
+  //   console.log(err);
+  //   res.json({ error: err });
+  // }
 });
 
 export default app;
