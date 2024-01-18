@@ -27,17 +27,23 @@ class Author {
 
   @prop({ required: true, type: () => [Article] })
   articles!: Article[];
+
+  // @prop({ required: true })
+  // blogger!: boolean;
 }
 
 class Comment {
-  @prop({ required: true, ref: () => Author })
-  author!: Ref<Author>;
+  @prop({ required: true })
+  author!: string;
 
   @prop({ required: true })
   date!: Date;
 
   @prop({ required: true })
   content!: string;
+
+  @prop({ required: true, ref: () => Article })
+  article!: Ref<Article>;
 }
 
 export { Article, Author, Comment };
