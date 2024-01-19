@@ -7,7 +7,7 @@ const Author = require('./Author');
 const Comment = require('./Comment');
 
 console.log(
-  'This script populates supplement products (items) and categories to the provided MongoDB database.'
+  'Populating the designated MongoDB database with the provided data...'
 );
 
 const userArgs = process.argv.slice(2);
@@ -69,23 +69,23 @@ async function createArticles() {
     articleCreate(
       0,
       'My First Blog!',
-      [authors[0]],
+      authors[0],
       new Date('2024-01-10T09:30:55'),
       'This is just a test.',
       []
     ),
     articleCreate(
-      0,
+      1,
       'Best Practices for Blogging',
-      [authors[0]],
+      authors[0],
       new Date('2024-01-11T12:32:32'),
       'The best practice for anything is to practice every day!',
       []
     ),
     articleCreate(
-      1,
+      2,
       '3 Tips For Crafting Compelling Content',
-      [authors[1]],
+      authors[1],
       new Date('2024-01-13T14:03:29'),
       '1. Know Your Audience \n2. Use Attention-Grabbing Headlines \n3. Tell Captivating Personal Stories \n These three tips will help any new blogger get up to speed with writing great blogs in no time!',
       []
@@ -94,13 +94,20 @@ async function createArticles() {
 }
 
 async function createComments() {
-  console.log('Adding articles');
+  console.log('Adding comments');
   await Promise.all([
     commentCreate(
       0,
       'Mark Elliott',
       new Date('2024-01-10T09:33:39'),
       'Looks like the test was successful! Congrats!',
+      articles[0]
+    ),
+    commentCreate(
+      1,
+      'bloggerFan123',
+      new Date('2024-01-14T04:21:59'),
+      `I can't wait to see what you do with this blog in the future`,
       articles[0]
     ),
     commentCreate(
@@ -111,51 +118,94 @@ async function createComments() {
       articles[1]
     ),
     commentCreate(
-      0,
+      3,
+      'lukeSkywalker5',
+      new Date('2024-01-12T10:12:41'),
+      'this is the greatest blogging tip of all time',
+      articles[1]
+    ),
+    commentCreate(
+      4,
+      'corndog fan',
+      new Date('2024-01-14T02:23:12'),
+      'i like corndogs',
+      articles[1]
+    ),
+    commentCreate(
+      5,
       'Anonymous',
       new Date('2024-01-15T00:16:48'),
-      'this article made my blogs much better. thank you!',
+      'this article made my blogs much better',
+      articles[2]
+    ),
+    commentCreate(
+      6,
+      'bloggergirl',
+      new Date('2024-01-16T10:19:00'),
+      'my blog is way better now thank youuuu!!!',
+      articles[2]
+    ),
+    commentCreate(
+      7,
+      'CMNDR45',
+      new Date('2024-01-15T15:58:49'),
+      'wow great advice very in depth',
+      articles[2]
+    ),
+    commentCreate(
+      8,
+      'i.heart.sharks',
+      new Date('2024-01-17T19:39:53'),
+      'hello i am looking to hire someone to help with my shark blog pleas contact me',
       articles[2]
     ),
   ]);
 }
 
 async function populateAuthor(author) {
-  const authorObjectId = author._id;
-
-  const articles = await Article.find(
-    { 'author._id': new mongoose.Types.ObjectId(authorObjectId) },
-    (err, results) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log(results);
-      }
-    }
-  );
+  const articles = await Article.find({
+    author,
+  })
+    .exec()
+    .catch((err) => console.log(err));
 
   await Author.findOneAndUpdate(
-    { _id: authorObjectId },
+    { _id: author },
     {
-      $push: {
-        articles: {
-          $each: articles.map((article) => new ObjectId(article._id)),
-        },
-      },
-    },
-    (err, doc) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`Succesful update: ${doc}`);
-      }
+      articles,
     }
-  );
+  )
+    .exec()
+    .catch((err) => console.log(err));
+}
+
+async function populateArticle(article) {
+  const comments = await Comment.find({ article })
+    .exec()
+    .catch((err) => console.log(err));
+
+  await Article.findOneAndUpdate(
+    { _id: article },
+    {
+      comments,
+    }
+  )
+    .exec()
+    .catch((err) => console.log(err));
 }
 
 async function updateAllAuthors() {
   console.log('Poulating authors');
-  await Promise.all([populateAuthor(author[0]), populateAuthor(author[1])]);
+  await Promise.all([populateAuthor(authors[0]), populateAuthor(authors[1])]);
+}
+
+async function updateAllArticles() {
+  console.log('Poulating articles');
+  await Promise.all([
+    populateArticle(articles[0]),
+    populateArticle(articles[1]),
+    populateArticle(articles[2]),
+  ]);
 }
 
 async function main() {
@@ -166,8 +216,9 @@ async function main() {
   await createArticles();
   await createComments();
 
-  // populate functions
+  // Populating array of references functions
   await updateAllAuthors();
+  await updateAllArticles();
 
   console.log('Debug: Closing mongoose');
   mongoose.connection.close();
