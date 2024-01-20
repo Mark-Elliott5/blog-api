@@ -3,10 +3,20 @@ import express from 'express';
 import path from 'path';
 import logger from 'morgan';
 import 'dotenv/config';
+import mongoose from 'mongoose';
 import apiRouterV1 from './routes/v1';
 import { INext, IReq, IRes } from './types/types';
 
 const app = express();
+mongoose.set('strictQuery', true);
+
+const mongoDBURI: string = process.env.MONGODB_URI ?? '';
+
+async function connectToDB() {
+  console.log(mongoDBURI);
+  await mongoose.connect(mongoDBURI);
+}
+connectToDB().catch((err) => console.log(`Database connection error: ${err}`));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -39,15 +49,6 @@ app.use((err: Error, req: IReq, res: IRes, next: INext): void => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   res.status(500).json({ error: err });
-
-  // render the error page
-  // if (err instanceof HttpError) {
-  //   console.log(err);
-  //   res.status(err.status).json({ error: err });
-  // } else {
-  //   console.log(err);
-  //   res.json({ error: err });
-  // }
 });
 
 export default app;

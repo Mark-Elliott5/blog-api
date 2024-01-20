@@ -1,6 +1,14 @@
 import express from 'express';
+import expressAsyncHandler from 'express-async-handler';
+// this way of importing is necessary to circumvent tree shaking
+import '../types/mongoose/Comment';
+import Article from '../types/mongoose/Article';
+import Author from '../types/mongoose/Author';
 // import jwt from 'jsonwebtoken';
+// import mongoose from 'mongoose';
 import { IReq, IRes } from '../types/types';
+
+const asyncHandler = expressAsyncHandler;
 
 const apiRouterV1 = express.Router();
 
@@ -8,6 +16,25 @@ apiRouterV1.get('/test', (req: IReq, res: IRes) => {
   // navigate to localhost:3000/api/v1/test
   res.json({ hello: 'world' });
 });
+
+apiRouterV1.get(
+  '/articles',
+  asyncHandler(async (req: IReq, res: IRes) => {
+    // navigate to localhost:3000/api/v1/articles
+    // await Comment;
+    const articles = await Article.find().populate('comments').exec();
+    res.json({ articles });
+  })
+);
+
+apiRouterV1.get(
+  '/authors',
+  asyncHandler(async (req: IReq, res: IRes) => {
+    // navigate to localhost:3000/api/v1/articles
+    const authors = await Author.find().populate('articles').exec();
+    res.json({ authors });
+  })
+);
 
 apiRouterV1.get('/:id', (req: IReq, res: IRes) => {
   // mongoose and authentication code here

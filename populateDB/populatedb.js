@@ -185,6 +185,10 @@ async function populateArticle(article) {
     .exec()
     .catch((err) => console.log(err));
 
+  // comments.forEach((comment) =>
+  //   Article.findByIdAndUpdate(article.id, { $push: { comments: comment.id } })
+  // );
+
   newArticle.comments = comments;
   await newArticle.save().catch((err) => console.log(err));
 }
