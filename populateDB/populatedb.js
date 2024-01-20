@@ -1,6 +1,7 @@
 #!/usr/bin/env node */
 
 const mongoose = require('mongoose');
+const dotenv = require('dotenv').config();
 
 const Article = require('./Article');
 const Author = require('./Author');
@@ -10,11 +11,9 @@ console.log(
   'Populating the designated MongoDB database with the provided data...'
 );
 
-const userArgs = process.argv.slice(2);
-
 mongoose.set('strictQuery', false);
 
-const mongoDB = userArgs[0];
+const mongoDB = process.env.MONGODB_URI;
 
 const authors = [];
 const articles = [];
@@ -169,14 +168,12 @@ async function populateAuthor(author) {
     .exec()
     .catch((err) => console.log(err));
 
-  await Author.findOneAndUpdate(
-    { _id: author },
-    {
-      articles,
-    }
-  )
+  const newAuthor = await Author.findById(author)
     .exec()
     .catch((err) => console.log(err));
+
+  newAuthor.articles = articles;
+  await newAuthor.save().catch((err) => console.log(err));
 }
 
 async function populateArticle(article) {
@@ -184,15 +181,27 @@ async function populateArticle(article) {
     .exec()
     .catch((err) => console.log(err));
 
-  await Article.findOneAndUpdate(
-    { _id: article },
-    {
-      comments,
-    }
-  )
+  const newArticle = await Article.findById(article)
     .exec()
     .catch((err) => console.log(err));
+
+  newArticle.comments = comments;
+  await newArticle.save().catch((err) => console.log(err));
 }
+
+// async function populateArticle(article) {
+//   const articleData = await Article.findById(article)
+//     .exec()
+//     .catch((err) => console.log(err));
+
+//   const comments = await Comment.find({ _id: { $in: articleData.comments } })
+//     .exec()
+//     .catch((err) => console.log(err));
+
+//   articleData.comments = comments;
+
+//   await articleData.save().catch((err) => console.log(err));
+// }
 
 async function updateAllAuthors() {
   console.log('Poulating authors');
