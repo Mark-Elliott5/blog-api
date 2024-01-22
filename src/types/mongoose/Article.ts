@@ -1,8 +1,14 @@
-import mongoose from 'mongoose';
+import { Schema, Types, Model, model } from 'mongoose';
 
-const { Schema } = mongoose;
+interface Article {
+  title: string;
+  author: Types.ObjectId;
+  date: Date;
+  content: string;
+  comments: Types.Array<Types.ObjectId>;
+}
 
-const articleSchema = new Schema({
+const articleSchema = new Schema<Article, Model<Article>>({
   title: { type: String, required: true },
   author: { type: Schema.Types.ObjectId, ref: 'Author' },
   date: { type: Date, required: true },
@@ -10,4 +16,8 @@ const articleSchema = new Schema({
   comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
 });
 
-export default mongoose.model('Article', articleSchema);
+// articleSchema.virtual('commentCount').get(function () {
+//   return this.comments.length;
+// });
+
+export default model('Article', articleSchema);

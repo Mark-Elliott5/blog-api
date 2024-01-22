@@ -1,10 +1,13 @@
-import mongoose from 'mongoose';
+import { Schema, Types, Model, model } from 'mongoose';
 
-const { Schema } = mongoose;
+interface Author {
+  name: string;
+  articles: Types.Array<Types.ObjectId>;
+}
 
-const authorSchema = new Schema({
+const authorSchema = new Schema<Author, Model<Author>>({
   name: { type: String, required: true },
   articles: [{ type: Schema.Types.ObjectId, ref: 'Article' }],
 });
 
-export default mongoose.model('Author', authorSchema);
+export default model('Author', authorSchema);

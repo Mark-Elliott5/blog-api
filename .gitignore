@@ -9,3 +9,5 @@ populatedb.ts
 thoughts
 
 tspopulatedb
+
+src/types/mongoose/interfaces.ts
