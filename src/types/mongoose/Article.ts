@@ -6,6 +6,7 @@ interface Article {
   date: Date;
   content: string;
   comments: Types.Array<Types.ObjectId>;
+  url: string;
 }
 
 const articleSchema = new Schema<Article, Model<Article>>({
@@ -14,6 +15,7 @@ const articleSchema = new Schema<Article, Model<Article>>({
   date: { type: Date, required: true },
   content: { type: String, required: true },
   comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+  url: { type: String, required: true },
 });
 
 // articleSchema.virtual('commentCount').get(function () {

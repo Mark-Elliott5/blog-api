@@ -24,5 +24,8 @@
     "rules": {
         "no-plusplus": "off",
         "no-console": "off"
-    }
+    },
+    "includes": [
+        "../populateDB/**/*.js"
+    ]
 }

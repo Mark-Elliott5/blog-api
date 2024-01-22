@@ -2,6 +2,8 @@
 
 const mongoose = require('mongoose');
 const dotenv = require('dotenv').config();
+const slugify = require('slugify');
+const { nanoid } = require('nanoid');
 
 const Article = require('./Article');
 const Author = require('./Author');
@@ -28,12 +30,22 @@ async function authorCreate(index, name, articles) {
 }
 
 async function articleCreate(index, title, author, date, content, comments) {
+  const slug = slugify(title, {
+    remove: /[^\w\s-]/g,
+    maxlength: 80,
+    lower: true,
+    trim: true,
+  });
+  const nano = nanoid(4);
+  const url = `${slug}-${nano}`;
+
   const article = new Article({
     title,
     author,
     date,
     content,
     comments,
+    url,
   });
 
   await article.save();
@@ -185,27 +197,9 @@ async function populateArticle(article) {
     .exec()
     .catch((err) => console.log(err));
 
-  // comments.forEach((comment) =>
-  //   Article.findByIdAndUpdate(article.id, { $push: { comments: comment.id } })
-  // );
-
   newArticle.comments = comments;
   await newArticle.save().catch((err) => console.log(err));
 }
-
-// async function populateArticle(article) {
-//   const articleData = await Article.findById(article)
-//     .exec()
-//     .catch((err) => console.log(err));
-
-//   const comments = await Comment.find({ _id: { $in: articleData.comments } })
-//     .exec()
-//     .catch((err) => console.log(err));
-
-//   articleData.comments = comments;
-
-//   await articleData.save().catch((err) => console.log(err));
-// }
 
 async function updateAllAuthors() {
   console.log('Poulating authors');

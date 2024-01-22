@@ -4,7 +4,7 @@ import path from 'path';
 import logger from 'morgan';
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import apiRouterV1 from './routes/v1';
+import apiRouterV1 from './routes/v1/v1';
 import { INext, IReq, IRes } from './types/types';
 
 const app = express();
@@ -31,6 +31,7 @@ app.use('/api/v1', apiRouterV1);
 
 // Catch 404
 app.use((req: IReq, res: IRes) => {
+  console.log('app.ts 404');
   res.status(404).json({
     status: 404,
     error: 'Not Found',

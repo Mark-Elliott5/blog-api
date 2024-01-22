@@ -4,8 +4,8 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "experimentalDecorators": true, /* Necessary for Typegoose */
-    "emitDecoratorMetadata": true, /* Necessary for auto-inferring type in Typegoose */
+    // "experimentalDecorators": true, /* Necessary for Typegoose */
+    // "emitDecoratorMetadata": true, /* Necessary for auto-inferring type in Typegoose */
   },
   "include": [
     "src/**/*.ts",

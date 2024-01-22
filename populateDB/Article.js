@@ -7,7 +7,8 @@ const articleSchema = new Schema({
   author: { type: Schema.Types.ObjectId, ref: 'Author' },
   date: { type: Date, required: true },
   content: { type: String, required: true },
-  comments: { type: [Schema.Types.ObjectId], ref: 'Comment' },
+  comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+  url: { type: String, required: true },
 });
 
 module.exports = mongoose.model('Article', articleSchema);
