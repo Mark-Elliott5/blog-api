@@ -39,7 +39,7 @@ export const articleCreate = asyncHandler(
 
 export const articleGet = asyncHandler(async (req: IReq, res: IRes) => {
   try {
-    const article = await Article.findOne({ url: req.params.articleTitle })
+    const article = await Article.findOne({ url: req.params.articleUrl })
       .populate({
         path: 'author',
         select: 'name',
@@ -56,7 +56,7 @@ export const articleGet = asyncHandler(async (req: IReq, res: IRes) => {
 
 export const articleUpdate = asyncHandler(
   async (req: IReq<IArticle>, res: IRes) => {
-    const url = req.params.articleTitle;
+    const url = req.params.articleUrl;
     try {
       const article = await Article.updateOne({ url }, req.body);
       if (article.matchedCount === 0) {
@@ -72,7 +72,7 @@ export const articleUpdate = asyncHandler(
 );
 
 export const articleDelete = asyncHandler(async (req: IReq, res: IRes) => {
-  const url = req.params.articleTitle;
+  const url = req.params.articleUrl;
   try {
     const article = await Article.deleteOne({ url });
     if (article.deletedCount === 0) {

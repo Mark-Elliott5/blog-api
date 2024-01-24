@@ -12,15 +12,13 @@ import commentsRouter from './comments';
 
 const articlesRouter = Router();
 
-articlesRouter.use('/:articleTitle/comments', commentsRouter);
+articlesRouter.use('/:articleUrl/comments', commentsRouter);
 
-articlesRouter.get('/:articleTitle', articleGet);
+articlesRouter.get('/:articleUrl', articleGet);
 
-articlesRouter.put('/:articleTitle', articleUpdate);
+articlesRouter.put('/:articleUrl', articleUpdate);
 
-articlesRouter.delete('/:articleTitle', articleDelete);
-
-articlesRouter.get('/:articleTitle', articleGet);
+articlesRouter.delete('/:articleUrl', articleDelete);
 
 articlesRouter.get('/', articlesList);
 

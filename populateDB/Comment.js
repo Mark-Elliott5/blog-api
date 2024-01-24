@@ -7,6 +7,7 @@ const commentSchema = new Schema({
   date: { type: Date, required: true },
   content: { type: String, required: true },
   article: { type: Schema.Types.ObjectId, ref: 'Article' },
+  url: { type: String, required: true },
 });
 
 module.exports = mongoose.model('Comment', commentSchema);
