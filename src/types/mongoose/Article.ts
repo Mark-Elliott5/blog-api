@@ -1,6 +1,6 @@
 import { Schema, Types, Model, model } from 'mongoose';
 
-interface Article {
+export interface IArticle {
   title: string;
   author: Types.ObjectId;
   date: Date;
@@ -9,7 +9,7 @@ interface Article {
   url: string;
 }
 
-const articleSchema = new Schema<Article, Model<Article>>({
+const articleSchema = new Schema<IArticle, Model<IArticle>>({
   title: { type: String, required: true },
   author: { type: Schema.Types.ObjectId, ref: 'Author' },
   date: { type: Date, required: true },
@@ -22,4 +22,4 @@ const articleSchema = new Schema<Article, Model<Article>>({
 //   return this.comments.length;
 // });
 
-export default model('Article', articleSchema);
+export const Article = model('Article', articleSchema);

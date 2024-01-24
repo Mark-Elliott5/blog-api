@@ -1,6 +1,6 @@
 import { Schema, Types, Model, model } from 'mongoose';
 
-interface Comment {
+export interface IComment {
   author: string;
   date: Date;
   content: string;
@@ -8,7 +8,7 @@ interface Comment {
   url: string;
 }
 
-const commentSchema = new Schema<Comment, Model<Comment>>({
+const commentSchema = new Schema<IComment, Model<IComment>>({
   author: { type: String, required: true },
   date: { type: Date, required: true },
   content: { type: String, required: true },
@@ -16,4 +16,4 @@ const commentSchema = new Schema<Comment, Model<Comment>>({
   url: { type: String, required: true },
 });
 
-export default model('Comment', commentSchema);
+export const Comment = model('Comment', commentSchema);

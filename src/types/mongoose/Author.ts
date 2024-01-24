@@ -1,15 +1,15 @@
 import { Schema, Types, Model, model } from 'mongoose';
 
-interface Author {
+export interface IAuthor {
   name: string;
   articles: Types.Array<Types.ObjectId>;
   url: string;
 }
 
-const authorSchema = new Schema<Author, Model<Author>>({
+const authorSchema = new Schema<IAuthor, Model<IAuthor>>({
   name: { type: String, required: true },
   articles: [{ type: Schema.Types.ObjectId, ref: 'Article' }],
   url: { type: String, required: true },
 });
 
-export default model('Author', authorSchema);
+export const Author = model('Author', authorSchema);
