@@ -22,7 +22,8 @@ const articles = [];
 const comments = [];
 
 async function authorCreate(index, name, articles) {
-  const author = new Author({ name, articles });
+  const url = nanoid();
+  const author = new Author({ name, articles, url });
 
   await author.save();
   authors[index] = author;
@@ -36,7 +37,7 @@ async function articleCreate(index, title, author, date, content, comments) {
     lower: true,
     trim: true,
   });
-  const nano = nanoid(4);
+  const nano = nanoid(10);
   const url = `${slug}-${nano}`;
 
   const article = new Article({
@@ -54,11 +55,13 @@ async function articleCreate(index, title, author, date, content, comments) {
 }
 
 async function commentCreate(index, author, date, content, article) {
+  const url = nanoid();
   const comment = new Comment({
     author,
     date,
     content,
     article,
+    url,
   });
 
   await comment.save();

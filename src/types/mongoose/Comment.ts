@@ -5,6 +5,7 @@ interface Comment {
   date: Date;
   content: string;
   article: Types.ObjectId;
+  url: string;
 }
 
 const commentSchema = new Schema<Comment, Model<Comment>>({
@@ -12,6 +13,7 @@ const commentSchema = new Schema<Comment, Model<Comment>>({
   date: { type: Date, required: true },
   content: { type: String, required: true },
   article: { type: Schema.Types.ObjectId, ref: 'Article' },
+  url: { type: String, required: true },
 });
 
 export default model('Comment', commentSchema);

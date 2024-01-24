@@ -4,7 +4,7 @@ import { Router } from 'express';
 import { authorsList } from '../../controllers/authorsController';
 import { commentsList } from '../../controllers/commentsController';
 
-const commentsRouter = Router();
+const commentsRouter = Router({ mergeParams: true });
 
 commentsRouter.get('/', commentsList);
 
