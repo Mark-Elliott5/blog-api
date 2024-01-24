@@ -1,6 +1,6 @@
 import expressAsyncHandler from 'express-async-handler';
 // this way of importing is necessary to circumvent tree shaking
-import '../types/mongoose/Author';
+// import '../types/mongoose/Author';
 import { Article } from '../types/mongoose/Article';
 import '../types/mongoose/Comment';
 import { IReq, IRes } from '../types/types';
@@ -9,12 +9,9 @@ import { Comment, IComment } from '../types/mongoose/Comment';
 const asyncHandler = expressAsyncHandler;
 
 export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
-  console.log(req.params.articleUrl);
-
+  const url = req.params.articleUrl;
   try {
-    const article = await Article.findOne({ url: req.params.articleUrl })
-      .populate('comments')
-      .exec();
+    const article = await Article.findOne({ url }).populate('comments').exec();
 
     if (article === null) {
       res.status(404).json({ error: 'Parent article document not found.' });
@@ -39,8 +36,9 @@ export const commentCreate = asyncHandler(
 );
 
 export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
+  const url = req.params.commentUrl;
   try {
-    const comment = await Comment.findOne({ url: req.params.commentUrl })
+    const comment = await Comment.findOne({ url })
       .populate({
         path: 'article',
         select: 'title',

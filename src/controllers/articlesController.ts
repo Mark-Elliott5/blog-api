@@ -8,7 +8,6 @@ import { IReq, IRes } from '../types/types';
 const asyncHandler = expressAsyncHandler;
 
 export const articlesList = asyncHandler(async (req: IReq, res: IRes) => {
-  // navigate to localhost:3000/api/v1/articles
   try {
     const articles = await Article.find()
       .select('title author date')
@@ -38,12 +37,19 @@ export const articleCreate = asyncHandler(
 );
 
 export const articleGet = asyncHandler(async (req: IReq, res: IRes) => {
+  const url = req.params.articleUrl;
   try {
-    const article = await Article.findOne({ url: req.params.articleUrl })
-      .populate({
-        path: 'author',
-        select: 'name',
-      })
+    const article = await Article.findOne({ url })
+      .populate([
+        {
+          path: 'comments',
+          select: 'author date content url',
+        },
+        {
+          path: 'author',
+          select: 'name url',
+        },
+      ])
       .exec();
     if (article === null) {
       throw new Error('No matching article documents found.');
