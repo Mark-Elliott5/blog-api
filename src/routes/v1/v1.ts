@@ -5,7 +5,7 @@ import expressAsyncHandler from 'express-async-handler';
 // import '../../types/mongoose/Author';
 // import jwt from 'jsonwebtoken';
 // import mongoose from 'mongoose';
-import { IReq, IRes } from '../../types/types';
+import { IReq, IRes, INext } from '../../types/types';
 import articlesRouter from './articles';
 import authorsRouter from './authors';
 
@@ -22,6 +22,13 @@ apiRouterV1.use((req: IReq, res: IRes) => {
     error: 'Not Found',
     message: 'The requested resource could not be found on the server.',
   });
+});
+
+// error handler
+// needs 4 args to register as error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+apiRouterV1.use((err: Error, req: IReq, res: IRes, next: INext): void => {
+  res.status(500).json({ err });
 });
 
 export default apiRouterV1;
