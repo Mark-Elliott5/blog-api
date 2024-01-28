@@ -6,6 +6,9 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import apiRouterV1 from './routes/v1/v1';
 import { INext, IReq, IRes } from './types/types';
+import { Author, IAuthor } from './types/mongoose/Author';
+import jwt from 'jsonwebtoken';
+import configureAuth from './middleware/configureAuth';
 
 const app = express();
 mongoose.set('strictQuery', true);
@@ -22,13 +25,30 @@ connectToDB().catch((err) => console.log(`Database connection error: ${err}`));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+configureAuth(app);
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1', apiRouterV1);
-app.post('/api/login' /*, authenticate */);
+app.post(
+  '/api/login',
+  async (req: IReq<IAuthor>, res: IRes) => {
+    const user = await Author.findOne({ username: req.body.username });
+    if (user) {
+      const token = jwt.sign(
+        { id: user._id, username: user.username },
+        process.env.SECRET_KEY?.toString() ??
+          (() => {
+            throw new Error('SECRET_KEY is undefined in .env');
+          })()
+      );
+      res.json({ token });
+    }
+  } /*, authenticate */
+);
 //authenticate user then place a requireAuth call back before the CRUD callback
 // in each router's HTTP methods
 
@@ -38,7 +58,7 @@ app.use((req: IReq, res: IRes) => {
   res.status(404).json({
     status: 404,
     error: 'Not Found',
-    message: 'The requested resource could not be found on the server.',
+    message: 'App.ts: The requested resource could not be found on the server.',
   });
 });
 

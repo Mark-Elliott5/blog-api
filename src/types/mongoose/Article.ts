@@ -5,8 +5,13 @@ export interface IArticle {
   author: Types.ObjectId;
   date: Date;
   content: string;
-  comments: Types.Array<Types.ObjectId>;
+  comments: Types.Array<Types.ObjectId> | [];
   url: string;
+}
+
+export interface ICreateArticle {
+  title: string;
+  content: string;
 }
 
 const articleSchema = new Schema<IArticle, Model<IArticle>>({

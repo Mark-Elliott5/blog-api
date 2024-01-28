@@ -8,6 +8,7 @@ import {
   authorUpdate,
   authorsList,
 } from '../../controllers/authorsController';
+import passport from 'passport';
 
 const authorsRouter = Router();
 
@@ -19,6 +20,10 @@ authorsRouter.delete('/:authorUrl', authorDelete);
 
 authorsRouter.get('/', authorsList);
 
-authorsRouter.post('/', authorCreate);
+authorsRouter.post(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  authorCreate
+);
 
 export default authorsRouter;

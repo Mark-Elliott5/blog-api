@@ -20,7 +20,7 @@ apiRouterV1.use((req: IReq, res: IRes) => {
   res.status(404).json({
     status: 404,
     error: 'Not Found',
-    message: 'The requested resource could not be found on the server.',
+    message: 'v1.ts: The requested resource could not be found on the server.',
   });
 });
 
@@ -28,7 +28,7 @@ apiRouterV1.use((req: IReq, res: IRes) => {
 // needs 4 args to register as error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 apiRouterV1.use((err: Error, req: IReq, res: IRes, next: INext): void => {
-  res.status(500).json({ err });
+  res.status(500).json({ err: `apiRouterV1 error catcher: ${err}` });
 });
 
 export default apiRouterV1;

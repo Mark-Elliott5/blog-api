@@ -9,6 +9,7 @@ import {
   articlesList,
 } from '../../controllers/articlesController';
 import commentsRouter from './comments';
+import passport from 'passport';
 
 const articlesRouter = Router();
 
@@ -22,7 +23,11 @@ articlesRouter.delete('/:articleUrl', articleDelete);
 
 articlesRouter.get('/', articlesList);
 
-articlesRouter.post('/', articleCreate);
+articlesRouter.post(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  articleCreate
+);
 
 // .populate([
 //   {

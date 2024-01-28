@@ -55,7 +55,6 @@ async function authorCreate(index, name, articles, username, password) {
 async function articleCreate(index, title, author, date, content, comments) {
   const slug = slugify(title, {
     remove: /[^\w\s-]/g,
-    maxlength: 80,
     lower: true,
     trim: true,
   });
