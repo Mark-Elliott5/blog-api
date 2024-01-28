@@ -28,6 +28,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1', apiRouterV1);
+app.post('/api/login' /*, authenticate */);
+//authenticate user then place a requireAuth call back before the CRUD callback
+// in each router's HTTP methods
 
 // Catch 404
 app.use((req: IReq, res: IRes) => {
