@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const articleSchema = new Schema({
   title: { type: String, required: true },
-  author: { type: Schema.Types.ObjectId, ref: 'Author' },
+  author: { type: Schema.Types.ObjectId, ref: 'Author', required: true },
   date: { type: Date, required: true },
   content: { type: String, required: true },
   comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],

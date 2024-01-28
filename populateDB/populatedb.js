@@ -4,10 +4,12 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv').config();
 const slugify = require('slugify');
 const { nanoid } = require('nanoid');
+const bcrypt = require('bcrypt');
 
 const Article = require('./Article');
 const Author = require('./Author');
 const Comment = require('./Comment');
+const { once } = require('events');
 
 console.log(
   'Populating the designated MongoDB database with the provided data...'
@@ -21,13 +23,33 @@ const authors = [];
 const articles = [];
 const comments = [];
 
-async function authorCreate(index, name, articles) {
+async function authorCreate(index, name, articles, username, password) {
   const url = nanoid();
-  const author = new Author({ name, articles, url });
 
-  await author.save();
-  authors[index] = author;
-  console.log(`Added author: ${name}`);
+  return new Promise((resolve, reject) => {
+    bcrypt.hash(password, 10, async (err, hashedPassword) => {
+      if (err) {
+        console.log(err);
+        reject();
+      } else {
+        const author = new Author({
+          name,
+          articles,
+          url,
+          username,
+          password: hashedPassword,
+        });
+        await author
+          .save()
+          .then(() => {
+            authors[index] = author;
+            console.log(`Added author: ${name}`);
+            resolve();
+          })
+          .catch((nameErr) => console.log(nameErr));
+      }
+    });
+  });
 }
 
 async function articleCreate(index, title, author, date, content, comments) {
@@ -72,8 +94,8 @@ async function commentCreate(index, author, date, content, article) {
 async function createAuthors() {
   console.log('Adding authors');
   await Promise.all([
-    authorCreate(0, 'John Doe', []),
-    authorCreate(1, 'Jane Smith', []),
+    authorCreate(0, 'John Doe', [], 'admin', 'password'),
+    authorCreate(1, 'Jane Smith', [], 'admin2', 'password2'),
   ]);
 }
 
