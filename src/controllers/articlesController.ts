@@ -93,7 +93,6 @@ export const articleUpdate = asyncHandler(
     const nano = nanoid(10);
     const newUrl = `${slug}-${nano}`;
     const newData = { url: newUrl, ...req.body };
-    // Object.assign(update, req.body));
     const article = await Article.updateOne({ url }, newData);
     if (article.matchedCount === 0) {
       throw new Error('No matching article documents found.');
@@ -105,10 +104,13 @@ export const articleUpdate = asyncHandler(
 );
 
 export const articleDelete = asyncHandler(async (req: IReq, res: IRes) => {
+  if (!req.user) {
+    throw new Error('User not logged in.');
+  }
   const url = req.params.articleUrl;
   const article = await Article.deleteOne({ url });
   if (article.deletedCount === 0) {
-    throw new Error('Article document not found');
+    throw new Error('Article document not found. No article has been deleted.');
   }
   if (article.acknowledged === false) {
     throw new Error('Article document deletion failed.');
