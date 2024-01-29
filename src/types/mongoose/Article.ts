@@ -9,7 +9,7 @@ export interface IArticle {
   url: string;
 }
 
-export interface ICreateArticle {
+export interface ICrudArticle {
   title: string;
   content: string;
 }

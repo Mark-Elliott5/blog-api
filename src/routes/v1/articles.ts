@@ -15,19 +15,27 @@ const articlesRouter = Router();
 
 articlesRouter.use('/:articleUrl/comments', commentsRouter);
 
+articlesRouter.put(
+  '/:articleUrl',
+  passport.authenticate('jwt', { session: false }),
+  articleUpdate
+);
+
+articlesRouter.delete(
+  '/:articleUrl',
+  passport.authenticate('jwt', { session: false }),
+  articleDelete
+);
+
 articlesRouter.get('/:articleUrl', articleGet);
-
-articlesRouter.put('/:articleUrl', articleUpdate);
-
-articlesRouter.delete('/:articleUrl', articleDelete);
-
-articlesRouter.get('/', articlesList);
 
 articlesRouter.post(
   '/',
   passport.authenticate('jwt', { session: false }),
   articleCreate
 );
+
+articlesRouter.get('/', articlesList);
 
 // .populate([
 //   {

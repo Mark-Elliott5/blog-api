@@ -2,7 +2,7 @@ import expressAsyncHandler from 'express-async-handler';
 // this way of importing is necessary to circumvent tree shaking
 import '../types/mongoose/Comment';
 import '../types/mongoose/Author';
-import { Article, IArticle, ICreateArticle } from '../types/mongoose/Article';
+import { Article, IArticle, ICrudArticle } from '../types/mongoose/Article';
 import { IReq, IRes } from '../types/types';
 import { Author } from '../types/mongoose/Author';
 import { nanoid } from 'nanoid';
@@ -25,37 +25,36 @@ export const articlesList = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const articleCreate = asyncHandler(
-  async (req: IReq<ICreateArticle>, res: IRes) => {
-    console.log('create article');
-    if (req.user) {
-      // if req.user._id is a string, we must use id instead of _id to query.
-      // because id casts to string.
-      const author = await Author.findOne({ _id: req.user._id }).exec();
-      if (author) {
-        const slug = slugify(req.body.title, {
-          remove: /[^\w\s-]/g,
-          lower: true,
-          trim: true,
-        });
-        const nano = nanoid(10);
-        const url = `${slug}-${nano}`;
-        const articleParams: IArticle = {
-          title: req.body.title,
-          author: author._id,
-          date: new Date(),
-          content: req.body.content,
-          comments: [],
-          url,
-        };
-        const article = await Article.create(articleParams);
-        author.articles.push(article);
-        await author.save();
-        res.json({ message: 'Article created successfully' });
-      } else {
-        throw new Error('Author not found.');
-      }
+  async (req: IReq<ICrudArticle>, res: IRes) => {
+    if (!req.user) {
+      throw new Error('User not logged in.');
+    }
+    // if req.user._id is a string, we must use id instead of _id to query.
+    // because id casts to string.
+    const author = await Author.findOne({ _id: req.user._id }).exec();
+    if (author) {
+      const slug = slugify(req.body.title, {
+        remove: /[^\w\s-]/g,
+        lower: true,
+        trim: true,
+      });
+      const nano = nanoid(10);
+      const url = `${slug}-${nano}`;
+      const articleParams: IArticle = {
+        title: req.body.title,
+        author: author._id,
+        date: new Date(),
+        content: req.body.content,
+        comments: [],
+        url,
+      };
+      const article = await Article.create(articleParams);
+      author.articles.push(article);
+      await author.save();
+      console.log(`Article created: ${req.body.title}`);
+      res.json({ message: 'Article created successfully' });
     } else {
-      throw new Error('User not found.');
+      throw new Error('Author not found.');
     }
   }
 );
@@ -81,9 +80,21 @@ export const articleGet = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const articleUpdate = asyncHandler(
-  async (req: IReq<IArticle>, res: IRes) => {
+  async (req: IReq<ICrudArticle>, res: IRes) => {
+    if (!req.user) {
+      throw new Error('User not logged in.');
+    }
     const url = req.params.articleUrl;
-    const article = await Article.updateOne({ url }, req.body);
+    const slug = slugify(req.body.title, {
+      remove: /[^\w\s-]/g,
+      lower: true,
+      trim: true,
+    });
+    const nano = nanoid(10);
+    const newUrl = `${slug}-${nano}`;
+    const newData = { url: newUrl, ...req.body };
+    // Object.assign(update, req.body));
+    const article = await Article.updateOne({ url }, newData);
     if (article.matchedCount === 0) {
       throw new Error('No matching article documents found.');
     }
