@@ -28,7 +28,9 @@ export const articleCreate = asyncHandler(
   async (req: IReq<ICreateArticle>, res: IRes) => {
     console.log('create article');
     if (req.user) {
-      const author = await Author.findOne({ _id: req.user.id }).exec();
+      // if req.user._id is a string, we must use id instead of _id to query.
+      // because id casts to string.
+      const author = await Author.findOne({ _id: req.user._id }).exec();
       if (author) {
         const slug = slugify(req.body.title, {
           remove: /[^\w\s-]/g,

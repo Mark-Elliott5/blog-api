@@ -23,21 +23,28 @@ const configureAuth = (app: Application) => {
 
   passport.use(
     new JwtStrategy(opts, async (jwt_payload: JwtPayload, done) => {
-      //const token = jwt.sign({ sub: user._id, username: user.username }, 'your-secret-key', { expiresIn: '1h' });
+      // const token = jwt.sign({ sub: user._id, username: user.username }, 'your-secret-key', { expiresIn: '1h' });
+      // or const token = jwt.sign({ _id: user._id, username: user.username }, 'your-secret-key', { expiresIn: '1h' });
       // this goes in login post. subsequent "passport.authenticate" routes will then have a jwt_payload to use.
       // passport.authenticate('jwt', {session: false})
+
+      // in Mongoose 7.4+, id and _id are the same. However, if you assign
+      // jwt_payload.sub to user._id, you will need to query with id not
+      // _id. This is because sub is string type, and querying with id will pull
+      // _id as a string instead of ObjectId. In simpler words "id" is a virtual
+      // getter that returns _id ObjectId as a string.
       try {
-        const user = await Author.findOne({ id: jwt_payload.sub });
+        const user = await Author.findOne({ _id: jwt_payload._id }).exec();
         if (!user) {
           return done(null, false, { message: 'Username not found.' });
         }
-        if (user) {
-          done(null, user);
-        } else {
-          done(null, false);
-        }
+        const userObj: Express.User = {
+          _id: user._id,
+          username: user.username,
+        };
+        return done(null, userObj);
       } catch (error) {
-        done(error, false);
+        return done(error, false);
       }
     })
   );

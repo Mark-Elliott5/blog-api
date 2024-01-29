@@ -8,6 +8,7 @@ import apiRouterV1 from './routes/v1/v1';
 import { INext, IReq, IRes } from './types/types';
 import { Author, IAuthor } from './types/mongoose/Author';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import configureAuth from './middleware/configureAuth';
 
 const app = express();
@@ -33,23 +34,26 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1', apiRouterV1);
-app.post(
-  '/api/login',
-  async (req: IReq<IAuthor>, res: IRes) => {
-    const user = await Author.findOne({ username: req.body.username });
-    if (user) {
-      const token = jwt.sign(
-        { id: user._id, username: user.username },
-        process.env.SECRET_KEY?.toString() ??
-          (() => {
-            throw new Error('SECRET_KEY is undefined in .env');
-          })()
-      );
-      res.json({ token });
-    }
-  } /*, authenticate */
-);
-//authenticate user then place a requireAuth call back before the CRUD callback
+app.post('/api/login', async (req: IReq<IAuthor>, res: IRes) => {
+  const user = await Author.findOne({ username: req.body.username });
+  if (!user) {
+    return res.json({ error: 'Username does not exist.' });
+  }
+  // User supplied string first, encrypted document password second.
+  const match = await bcrypt.compare(req.body.password, user.password);
+  if (!match) {
+    return res.json({ error: 'Password incorrect.' });
+  }
+  const token = jwt.sign(
+    { _id: user._id, username: user.username },
+    process.env.SECRET_KEY?.toString() ??
+      (() => {
+        throw new Error('SECRET_KEY is undefined in .env');
+      })()
+  );
+  res.json({ token });
+});
+// Place a requireAuth callback before the CRUD callback
 // in each router's HTTP methods
 
 // Catch 404
