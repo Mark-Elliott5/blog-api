@@ -2,8 +2,12 @@ import expressAsyncHandler from 'express-async-handler';
 // this way of importing is necessary to circumvent tree shaking
 import '../types/mongoose/Comment';
 import '../types/mongoose/Article';
-import { Author, IAuthor } from '../types/mongoose/Author';
+import { Author, IAuthor, ICrudAuthor } from '../types/mongoose/Author';
 import { IReq, IRes } from '../types/types';
+import slugify from 'slugify';
+import { nanoid } from 'nanoid';
+import bcrypt from 'bcrypt';
+import { Types } from 'mongoose';
 
 const asyncHandler = expressAsyncHandler;
 
@@ -18,8 +22,31 @@ export const authorsList = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const authorCreate = asyncHandler(
-  async (req: IReq<IAuthor>, res: IRes) => {
-    await Author.create(req.body);
+  async (req: IReq<ICrudAuthor>, res: IRes) => {
+    if (!req.user) {
+      throw new Error('User not logged in.');
+    }
+    const existingAuthor = await Author.findOne({
+      username: req.body.username,
+    }).exec();
+    if (existingAuthor) {
+      throw new Error('Author username already exists.');
+    }
+    const slug = slugify(req.body.name, {
+      lower: false,
+      trim: true,
+    });
+    const nano = nanoid(10);
+    const url = `${nano}-${slug}`;
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const newAuthor: IAuthor = {
+      name: req.body.name,
+      articles: new Types.Array(),
+      url,
+      username: req.body.username,
+      password: hashedPassword,
+    };
+    await Author.create(newAuthor);
     res.json({ message: 'Author created successfully' });
   }
 );

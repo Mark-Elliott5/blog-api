@@ -5,7 +5,7 @@ export interface IArticle {
   author: Types.ObjectId;
   date: Date;
   content: string;
-  comments: Types.Array<Types.ObjectId> | [];
+  comments: Types.Array<Types.ObjectId>;
   url: string;
 }
 

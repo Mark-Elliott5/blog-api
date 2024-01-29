@@ -8,6 +8,12 @@ export interface IAuthor {
   password: string;
 }
 
+export interface ICrudAuthor {
+  name: string;
+  username: string;
+  password: string;
+}
+
 const authorSchema = new Schema<IAuthor, Model<IAuthor>>({
   name: { type: String, required: true },
   articles: [{ type: Schema.Types.ObjectId, ref: 'Article' }],

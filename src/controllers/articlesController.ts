@@ -7,6 +7,7 @@ import { IReq, IRes } from '../types/types';
 import { Author } from '../types/mongoose/Author';
 import { nanoid } from 'nanoid';
 import slugify from 'slugify';
+import { Types } from 'mongoose';
 
 const asyncHandler = expressAsyncHandler;
 
@@ -45,7 +46,7 @@ export const articleCreate = asyncHandler(
         author: author._id,
         date: new Date(),
         content: req.body.content,
-        comments: [],
+        comments: new Types.Array(),
         url,
       };
       const article = await Article.create(articleParams);
