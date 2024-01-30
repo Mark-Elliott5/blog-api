@@ -8,7 +8,6 @@ import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
 import { Types } from 'mongoose';
-import authorsRouter from '../routes/v1/authors';
 
 const asyncHandler = expressAsyncHandler;
 
@@ -102,6 +101,9 @@ export const authorUpdate = asyncHandler(
 );
 
 export const authorDelete = asyncHandler(async (req: IReq, res: IRes) => {
+  if (!req.user) {
+    throw new Error('User not logged in.');
+  }
   const url = req.params.authorUrl;
   const author = await Author.deleteOne({ url });
   if (author.deletedCount === 0) {
