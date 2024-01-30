@@ -14,9 +14,17 @@ const authorsRouter = Router();
 
 authorsRouter.get('/:authorUrl', authorGet);
 
-authorsRouter.put('/:authorUrl', authorUpdate);
+authorsRouter.put(
+  '/:authorUrl',
+  passport.authenticate('jwt', { session: false }),
+  authorUpdate
+);
 
-authorsRouter.delete('/:authorUrl', authorDelete);
+authorsRouter.delete(
+  '/:authorUrl',
+  passport.authenticate('jwt', { session: false }),
+  authorDelete
+);
 
 authorsRouter.get('/', authorsList);
 

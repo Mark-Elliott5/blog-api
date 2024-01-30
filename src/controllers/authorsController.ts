@@ -8,6 +8,7 @@ import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
 import { Types } from 'mongoose';
+import authorsRouter from '../routes/v1/authors';
 
 const asyncHandler = expressAsyncHandler;
 
@@ -54,6 +55,7 @@ export const authorCreate = asyncHandler(
 export const authorGet = asyncHandler(async (req: IReq, res: IRes) => {
   const url = req.params.authorUrl;
   const author = await Author.findOne({ url })
+    .select('name articles url')
     .populate({
       path: 'articles',
       select: 'title date',
@@ -67,12 +69,32 @@ export const authorGet = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const authorUpdate = asyncHandler(
-  async (req: IReq<IAuthor>, res: IRes) => {
+  async (req: IReq<ICrudAuthor>, res: IRes) => {
+    if (!req.user) {
+      throw new Error('User not logged in.');
+    }
     const url = req.params.authorUrl;
-    const author = await Author.updateOne({ url }, req.body);
-    if (author.matchedCount === 0) {
+    const author = await Author.findOne({ url });
+    if (!author) {
       throw new Error('No matching author documents found.');
     }
+    const newAuthor = {
+      name: req.body.name,
+      username: req.body.username,
+      password: req.body.password,
+      url: author.url,
+    };
+    if (author.name !== req.body.name) {
+      const slug = slugify(req.body.name, {
+        lower: false,
+        trim: true,
+      });
+      const nano = nanoid(10);
+      newAuthor.url = `${nano}-${slug}`;
+    }
+    await author.updateOne({
+      $set: newAuthor,
+    });
     res.json({
       message: 'Author document updated successfully.',
     });
