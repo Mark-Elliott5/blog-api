@@ -20,7 +20,7 @@ export const articlesList = asyncHandler(async (req: IReq, res: IRes) => {
     })
     .exec();
   if (articles.length === 0) {
-    throw new Error('No matching article documents found.');
+    throw new Error('No matching articles found.');
   }
   res.json({ articles });
 });
@@ -75,7 +75,7 @@ export const articleGet = asyncHandler(async (req: IReq, res: IRes) => {
     ])
     .exec();
   if (article === null) {
-    throw new Error('No matching article documents found.');
+    throw new Error('No matching articles found.');
   }
   res.json({ article });
 });
@@ -96,10 +96,10 @@ export const articleUpdate = asyncHandler(
     const newData = { url: newUrl, ...req.body };
     const article = await Article.updateOne({ url }, newData).exec();
     if (article.matchedCount === 0) {
-      throw new Error('No matching article documents found.');
+      throw new Error('No matching articles found.');
     }
     res.json({
-      message: 'Article document updated successfully.',
+      message: 'Article updated successfully.',
     });
   }
 );
@@ -111,22 +111,12 @@ export const articleDelete = asyncHandler(async (req: IReq, res: IRes) => {
   const url = req.params.articleUrl;
   const article = await Article.deleteOne({ url });
   if (article.deletedCount === 0) {
-    throw new Error('Article document not found. No article has been deleted.');
+    throw new Error('Article not found. No article has been deleted.');
   }
   if (article.acknowledged === false) {
-    throw new Error('Article document deletion failed.');
+    throw new Error('Article deletion failed.');
   }
   res.json({
-    message: 'Article document deleted successfully.',
+    message: 'Article deleted successfully.',
   });
 });
-
-// .populate([
-//   {
-//     path: 'comments',
-//   },
-//   {
-//     path: 'author',
-//     select: 'name',
-//   },
-// ])

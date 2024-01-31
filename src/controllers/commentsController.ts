@@ -22,9 +22,8 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
 
 export const commentCreate = asyncHandler(
   async (req: IReq<ICrudComment>, res: IRes) => {
-    const article = await Article.findOne({
-      url: req.params.articleUrl,
-    }).exec();
+    const url = req.params.articleUrl;
+    const article = await Article.findOne({ url }).exec();
     if (!article) {
       throw new Error('Article not found.');
     }
@@ -42,8 +41,16 @@ export const commentCreate = asyncHandler(
 );
 
 export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
-  const url = req.params.commentUrl;
-  const comment = await Comment.findOne({ url })
+  const commentUrl = req.params.commentUrl;
+  const articleUrl = req.params.articleUrl;
+  const article = await Article.findOne({ url: articleUrl }).exec();
+  if (!article) {
+    throw new Error('Article not found for supplied comment.');
+  }
+  const comment = await Comment.findOne({
+    url: commentUrl,
+    article: article._id,
+  })
     .populate({
       path: 'article',
       select: 'title',
@@ -56,38 +63,41 @@ export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const commentUpdate = asyncHandler(
-  async (req: IReq<IComment>, res: IRes) => {
+  async (req: IReq<ICrudComment>, res: IRes) => {
     const url = req.params.commentUrl;
-    const comment = await Comment.updateOne({ url }, req.body).exec();
+    const articleUrl = req.params.articleUrl;
+    const article = await Article.findOne({ url: articleUrl }).exec();
+    if (!article) {
+      throw new Error('Article not found for supplied comment.');
+    }
+    const comment = await Comment.updateOne(
+      { url, article: article._id },
+      req.body
+    ).exec();
     if (comment.matchedCount === 0) {
-      throw new Error('No matching comment documents found.');
+      throw new Error('No matching comments found.');
     }
     res.json({
-      message: 'Comment document updated successfully.',
+      message: 'Comment updated successfully.',
     });
   }
 );
 
 export const commentDelete = asyncHandler(async (req: IReq, res: IRes) => {
-  const url = req.params.commentUrl;
-  const comment = await Comment.deleteOne({ url });
+  const commentUrl = req.params.commentUrl;
+  const articleUrl = req.params.articleUrl;
+  const article = await Article.findOne({ url: articleUrl }).exec();
+  if (!article) {
+    throw new Error('Article not found for supplied comment.');
+  }
+  const comment = await Comment.deleteOne({ url: commentUrl });
   if (comment.deletedCount === 0) {
-    throw new Error('Comment document not found');
+    throw new Error('Comment not found');
   }
   if (comment.acknowledged === false) {
-    throw new Error('Comment document deletion failed.');
+    throw new Error('Comment deletion failed.');
   }
   res.json({
-    message: 'Comment document deleted successfully.',
+    message: 'Comment deleted successfully.',
   });
 });
-
-// .populate([
-//   {
-//     path: 'comments',
-//   },
-//   {
-//     path: 'author',
-//     select: 'name',
-//   },
-// ])
