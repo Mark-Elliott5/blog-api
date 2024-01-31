@@ -8,8 +8,37 @@ import { Author } from '../types/mongoose/Author';
 import { nanoid } from 'nanoid';
 import slugify from 'slugify';
 import { Types } from 'mongoose';
+import { body } from 'express-validator';
+import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
+
+export const articleValidationFunctions = [
+  body('title')
+    .exists()
+    .withMessage('Title field required.')
+    .notEmpty()
+    .withMessage('Title field must not be empty.')
+    .not()
+    .contains(/\s/)
+    .withMessage('Title field must not contain whitespace characters.')
+    .trim()
+    .matches(/^[a-zA-Z0-9\-._]+$/)
+    .withMessage(
+      'Title field must only contain alphanumeric characters, periods, underscores, and/or hyphens.'
+    )
+    .isLength({ min: 4, max: 512 })
+    .withMessage('Title field must be 4-512 characters in length.')
+    .escape(),
+  body('content')
+    .exists()
+    .withMessage('Content field required.')
+    .notEmpty()
+    .withMessage('Content field must not be empty.')
+    .isLength({ min: 8, max: 50000 })
+    .withMessage('Content field must be 8-50000 characters in length.')
+    .escape(),
+];
 
 export const articlesList = asyncHandler(async (req: IReq, res: IRes) => {
   const articles = await Article.find()
@@ -25,8 +54,12 @@ export const articlesList = asyncHandler(async (req: IReq, res: IRes) => {
   res.json({ articles });
 });
 
-export const articleCreate = asyncHandler(
-  async (req: IReq<ICrudArticle>, res: IRes) => {
+export const articleCreate = [
+  ...articleValidationFunctions,
+
+  validateBody,
+
+  asyncHandler(async (req: IReq<ICrudArticle>, res: IRes) => {
     if (!req.user) {
       throw new Error('User not logged in.');
     }
@@ -57,8 +90,8 @@ export const articleCreate = asyncHandler(
     } else {
       throw new Error('Author not found.');
     }
-  }
-);
+  }),
+];
 
 export const articleGet = asyncHandler(async (req: IReq, res: IRes) => {
   const url = req.params.articleUrl;
@@ -80,8 +113,12 @@ export const articleGet = asyncHandler(async (req: IReq, res: IRes) => {
   res.json({ article });
 });
 
-export const articleUpdate = asyncHandler(
-  async (req: IReq<ICrudArticle>, res: IRes) => {
+export const articleUpdate = [
+  ...articleValidationFunctions,
+
+  validateBody,
+
+  asyncHandler(async (req: IReq<ICrudArticle>, res: IRes) => {
     if (!req.user) {
       throw new Error('User not logged in.');
     }
@@ -101,8 +138,8 @@ export const articleUpdate = asyncHandler(
     res.json({
       message: 'Article updated successfully.',
     });
-  }
-);
+  }),
+];
 
 export const articleDelete = asyncHandler(async (req: IReq, res: IRes) => {
   if (!req.user) {
