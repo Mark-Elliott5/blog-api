@@ -6,8 +6,24 @@ import '../types/mongoose/Comment';
 import { IReq, IRes } from '../types/types';
 import { Comment, IComment, ICrudComment } from '../types/mongoose/Comment';
 import { nanoid } from 'nanoid';
+import { body, validationResult, Result } from 'express-validator';
 
 const asyncHandler = expressAsyncHandler;
+
+export const commentValidationFunctions = [
+  body('author')
+    .exists()
+    .withMessage('Author field required.')
+    .notEmpty()
+    .withMessage('Author field must not be empty.')
+    .escape(),
+  body('content')
+    .exists()
+    .withMessage('Content field required.')
+    .notEmpty()
+    .withMessage('Content field must not be empty.')
+    .escape(),
+];
 
 export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
   const url = req.params.articleUrl;
@@ -20,8 +36,22 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
   res.json({ comments });
 });
 
-export const commentCreate = asyncHandler(
-  async (req: IReq<ICrudComment>, res: IRes) => {
+export const commentCreate = [
+  ...commentValidationFunctions,
+
+  asyncHandler(async (req: IReq<ICrudComment>, res: IRes) => {
+    const error = validationResult(req);
+
+    if (!error.isEmpty()) {
+      const errorArray = error.array().map((err) => err.msg);
+      const errorString = errorArray.reduce(
+        (accumulator, currentValue, currentIndex) =>
+          accumulator + `${currentIndex + 1}. ${currentValue} `,
+        ``
+      );
+      throw new Error(`Comment failed validation: ` + errorString.slice(0, -1));
+    }
+
     const url = req.params.articleUrl;
     const article = await Article.findOne({ url }).exec();
     if (!article) {
@@ -36,9 +66,9 @@ export const commentCreate = asyncHandler(
     };
     const comment = await Comment.create(commentData);
     await article.updateOne({ $push: { comments: comment._id } }).exec();
-    res.json({ message: 'Comment created successfully' });
-  }
-);
+    res.json({ message: 'Comment created successfully.' });
+  }),
+];
 
 export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
   const commentUrl = req.params.commentUrl;
@@ -92,7 +122,7 @@ export const commentDelete = asyncHandler(async (req: IReq, res: IRes) => {
   }
   const comment = await Comment.deleteOne({ url: commentUrl });
   if (comment.deletedCount === 0) {
-    throw new Error('Comment not found');
+    throw new Error('Comment not found.');
   }
   if (comment.acknowledged === false) {
     throw new Error('Comment deletion failed.');
