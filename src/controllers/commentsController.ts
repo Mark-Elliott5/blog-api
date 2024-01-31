@@ -13,9 +13,8 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
   const url = req.params.articleUrl;
   const article = await Article.findOne({ url }).populate('comments').exec();
 
-  if (article === null) {
-    res.status(404).json({ error: 'Parent article document not found.' });
-    return;
+  if (!article) {
+    throw new Error('Article not found.');
   }
   const { comments } = article;
   res.json({ comments });
@@ -23,7 +22,9 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
 
 export const commentCreate = asyncHandler(
   async (req: IReq<ICrudComment>, res: IRes) => {
-    const article = await Article.findOne({ url: req.params.articleUrl });
+    const article = await Article.findOne({
+      url: req.params.articleUrl,
+    }).exec();
     if (!article) {
       throw new Error('Article not found.');
     }
@@ -35,7 +36,7 @@ export const commentCreate = asyncHandler(
       url: nanoid(10),
     };
     const comment = await Comment.create(commentData);
-    await article.updateOne({ $push: { comments: comment._id } });
+    await article.updateOne({ $push: { comments: comment._id } }).exec();
     res.json({ message: 'Comment created successfully' });
   }
 );
@@ -48,9 +49,8 @@ export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
       select: 'title',
     })
     .exec();
-  if (comment === null) {
-    res.status(404).json({ error: 'Comment document not found.' });
-    return;
+  if (!comment) {
+    throw new Error('Comment not found.');
   }
   res.json({ comment });
 });
@@ -58,7 +58,7 @@ export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
 export const commentUpdate = asyncHandler(
   async (req: IReq<IComment>, res: IRes) => {
     const url = req.params.commentUrl;
-    const comment = await Comment.updateOne({ url }, req.body);
+    const comment = await Comment.updateOne({ url }, req.body).exec();
     if (comment.matchedCount === 0) {
       throw new Error('No matching comment documents found.');
     }

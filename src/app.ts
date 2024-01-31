@@ -35,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1', apiRouterV1);
 app.post('/api/login', async (req: IReq<IAuthor>, res: IRes) => {
-  const user = await Author.findOne({ username: req.body.username });
+  const user = await Author.findOne({ username: req.body.username }).exec();
   if (!user) {
     return res.json({ error: 'Username does not exist.' });
   }

@@ -60,9 +60,8 @@ export const authorGet = asyncHandler(async (req: IReq, res: IRes) => {
       select: 'title date',
     })
     .exec();
-  if (author === null) {
-    res.status(404).json({ error: 'Author document not found.' });
-    return;
+  if (!author) {
+    throw new Error('Author not found.');
   }
   res.json({ author });
 });
@@ -73,7 +72,7 @@ export const authorUpdate = asyncHandler(
       throw new Error('User not logged in.');
     }
     const url = req.params.authorUrl;
-    const author = await Author.findOne({ url });
+    const author = await Author.findOne({ url }).exec();
     if (!author) {
       throw new Error('No matching author documents found.');
     }
@@ -91,9 +90,11 @@ export const authorUpdate = asyncHandler(
       const nano = nanoid(10);
       newAuthor.url = `${nano}-${slug}`;
     }
-    await author.updateOne({
-      $set: newAuthor,
-    });
+    await author
+      .updateOne({
+        $set: newAuthor,
+      })
+      .exec();
     res.json({
       message: 'Author document updated successfully.',
     });

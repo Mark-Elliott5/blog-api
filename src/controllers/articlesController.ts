@@ -94,7 +94,7 @@ export const articleUpdate = asyncHandler(
     const nano = nanoid(10);
     const newUrl = `${slug}-${nano}`;
     const newData = { url: newUrl, ...req.body };
-    const article = await Article.updateOne({ url }, newData);
+    const article = await Article.updateOne({ url }, newData).exec();
     if (article.matchedCount === 0) {
       throw new Error('No matching article documents found.');
     }
