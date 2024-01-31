@@ -6,7 +6,7 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import apiRouterV1 from './routes/v1/v1';
 import { INext, IReq, IRes } from './types/types';
-import { Author, IAuthor } from './types/mongoose/Author';
+import { Author, IAuthorLogin } from './types/mongoose/Author';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import configureAuth from './middleware/configureAuth';
@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1', apiRouterV1);
-app.post('/api/login', async (req: IReq<IAuthor>, res: IRes) => {
+app.post('/api/login', async (req: IReq<IAuthorLogin>, res: IRes) => {
   const user = await Author.findOne({ username: req.body.username }).exec();
   if (!user) {
     return res.json({ error: 'Username does not exist.' });

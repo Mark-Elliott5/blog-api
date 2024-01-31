@@ -8,6 +8,11 @@ export interface IAuthor {
   password: string;
 }
 
+export interface IAuthorLogin {
+  username: string;
+  password: string;
+}
+
 export interface ICrudAuthor {
   name: string;
   username: string;
