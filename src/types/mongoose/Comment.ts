@@ -8,6 +8,11 @@ export interface IComment {
   url: string;
 }
 
+export interface ICrudComment {
+  author: string;
+  content: string;
+}
+
 const commentSchema = new Schema<IComment, Model<IComment>>({
   author: { type: String, required: true },
   date: { type: Date, required: true },

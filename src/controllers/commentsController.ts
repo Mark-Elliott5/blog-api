@@ -4,7 +4,8 @@ import expressAsyncHandler from 'express-async-handler';
 import { Article } from '../types/mongoose/Article';
 import '../types/mongoose/Comment';
 import { IReq, IRes } from '../types/types';
-import { Comment, IComment } from '../types/mongoose/Comment';
+import { Comment, IComment, ICrudComment } from '../types/mongoose/Comment';
+import { nanoid } from 'nanoid';
 
 const asyncHandler = expressAsyncHandler;
 
@@ -21,8 +22,20 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const commentCreate = asyncHandler(
-  async (req: IReq<IComment>, res: IRes) => {
-    await Comment.create(req.body);
+  async (req: IReq<ICrudComment>, res: IRes) => {
+    const article = await Article.findOne({ url: req.params.articleUrl });
+    if (!article) {
+      throw new Error('Article not found.');
+    }
+    const commentData: IComment = {
+      author: req.body.author,
+      date: new Date(),
+      content: req.body.content,
+      article: article._id,
+      url: nanoid(10),
+    };
+    const comment = await Comment.create(commentData);
+    await article.updateOne({ $push: { comments: comment._id } });
     res.json({ message: 'Comment created successfully' });
   }
 );
