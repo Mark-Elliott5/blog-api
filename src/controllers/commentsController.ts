@@ -7,6 +7,7 @@ import { IReq, IRes } from '../types/types';
 import { Comment, IComment, ICrudComment } from '../types/mongoose/Comment';
 import { nanoid } from 'nanoid';
 import { body, validationResult, Result } from 'express-validator';
+import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
 
@@ -39,19 +40,9 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
 export const commentCreate = [
   ...commentValidationFunctions,
 
+  validateBody,
+
   asyncHandler(async (req: IReq<ICrudComment>, res: IRes) => {
-    const error = validationResult(req);
-
-    if (!error.isEmpty()) {
-      const errorArray = error.array().map((err) => err.msg);
-      const errorString = errorArray.reduce(
-        (accumulator, currentValue, currentIndex) =>
-          accumulator + `${currentIndex + 1}. ${currentValue} `,
-        ``
-      );
-      throw new Error(`Comment failed validation: ` + errorString.slice(0, -1));
-    }
-
     const url = req.params.articleUrl;
     const article = await Article.findOne({ url }).exec();
     if (!article) {
@@ -95,19 +86,9 @@ export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
 export const commentUpdate = [
   ...commentValidationFunctions,
 
+  validateBody,
+
   asyncHandler(async (req: IReq<ICrudComment>, res: IRes) => {
-    const error = validationResult(req);
-
-    if (!error.isEmpty()) {
-      const errorArray = error.array().map((err) => err.msg);
-      const errorString = errorArray.reduce(
-        (accumulator, currentValue, currentIndex) =>
-          accumulator + `${currentIndex + 1}. ${currentValue} `,
-        ``
-      );
-      throw new Error(`Comment failed validation: ` + errorString.slice(0, -1));
-    }
-
     const url = req.params.commentUrl;
     const articleUrl = req.params.articleUrl;
     const article = await Article.findOne({ url: articleUrl }).exec();
