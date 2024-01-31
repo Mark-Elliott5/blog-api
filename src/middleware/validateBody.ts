@@ -3,7 +3,7 @@ import { validationResult } from 'express-validator';
 import { IReq, IRes } from '../types/types';
 import { ICrudArticle } from '../types/mongoose/Article';
 import { ICrudAuthor } from '../types/mongoose/Author';
-import { IComment, ICrudComment } from '../types/mongoose/Comment';
+import { ICrudComment } from '../types/mongoose/Comment';
 import { NextFunction } from 'express';
 
 const asyncHandler = expressAsyncHandler;

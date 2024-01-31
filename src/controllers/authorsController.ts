@@ -8,8 +8,60 @@ import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
 import { Types } from 'mongoose';
+import { body } from 'express-validator';
+import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
+
+export const authorValidationFunctions = [
+  body('name')
+    .exists()
+    .withMessage('Name field required.')
+    .notEmpty()
+    .withMessage('Name field required.')
+    .trim()
+    .matches(/[^\w\s]|[\d]/)
+    .withMessage(
+      'Name field must only contain alphanumeric characters or underscores.'
+    )
+    .isLength({ min: 4, max: 40 })
+    .withMessage('Name field must be 4-32 characters in length.')
+    .escape(),
+  body('username')
+    .exists()
+    .notEmpty()
+    .withMessage('Username field must not be empty.')
+    .isString()
+    .withMessage('Username field must be a string')
+    .not()
+    .contains(/\s/)
+    .withMessage('Username field must not contain whitespace characters.')
+    .trim()
+    .matches(/^[a-zA-Z0-9\-._]+$/)
+    .withMessage(
+      'Username field must only contain alphanumeric characters, periods, underscores, and/or hyphens.'
+    )
+    .isLength({ min: 4, max: 32 })
+    .withMessage('Username field must be 4-32 characters in length.')
+    .escape(),
+  body('password')
+    .exists()
+    .notEmpty()
+    .withMessage('Password field must not be empty.')
+    .isString()
+    .withMessage('Password field must be a string')
+    .not()
+    .contains(/\s/)
+    .withMessage('Password field must not contain whitespace characters.')
+    .trim()
+    .matches(/^[a-zA-Z0-9\-._]+$/)
+    .withMessage(
+      'Password field must only contain alphanumeric characters, periods, underscores, and/or hyphens.'
+    )
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password field must be 8-128 characters in length.')
+    .escape(),
+];
 
 export const authorsList = asyncHandler(async (req: IReq, res: IRes) => {
   const authors = await Author.find()
@@ -21,8 +73,12 @@ export const authorsList = asyncHandler(async (req: IReq, res: IRes) => {
   res.json({ authors });
 });
 
-export const authorCreate = asyncHandler(
-  async (req: IReq<ICrudAuthor>, res: IRes) => {
+export const authorCreate = [
+  ...authorValidationFunctions,
+
+  validateBody,
+
+  asyncHandler(async (req: IReq<ICrudAuthor>, res: IRes) => {
     if (!req.user) {
       throw new Error('User not logged in.');
     }
@@ -48,8 +104,8 @@ export const authorCreate = asyncHandler(
     };
     await Author.create(newAuthor);
     res.json({ message: 'Author created successfully' });
-  }
-);
+  }),
+];
 
 export const authorGet = asyncHandler(async (req: IReq, res: IRes) => {
   const url = req.params.authorUrl;
@@ -66,8 +122,12 @@ export const authorGet = asyncHandler(async (req: IReq, res: IRes) => {
   res.json({ author });
 });
 
-export const authorUpdate = asyncHandler(
-  async (req: IReq<ICrudAuthor>, res: IRes) => {
+export const authorUpdate = [
+  ...authorValidationFunctions,
+
+  validateBody,
+
+  asyncHandler(async (req: IReq<ICrudAuthor>, res: IRes) => {
     if (!req.user) {
       throw new Error('User not logged in.');
     }
@@ -98,8 +158,8 @@ export const authorUpdate = asyncHandler(
     res.json({
       message: 'Author updated successfully.',
     });
-  }
-);
+  }),
+];
 
 export const authorDelete = asyncHandler(async (req: IReq, res: IRes) => {
   if (!req.user) {

@@ -6,7 +6,7 @@ import '../types/mongoose/Comment';
 import { IReq, IRes } from '../types/types';
 import { Comment, IComment, ICrudComment } from '../types/mongoose/Comment';
 import { nanoid } from 'nanoid';
-import { body, validationResult, Result } from 'express-validator';
+import { body } from 'express-validator';
 import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
@@ -17,12 +17,24 @@ export const commentValidationFunctions = [
     .withMessage('Author field required.')
     .notEmpty()
     .withMessage('Author field must not be empty.')
+    .not()
+    .contains(/\s/)
+    .withMessage('Author field must not contain whitespace characters.')
+    .trim()
+    .matches(/^[a-zA-Z0-9\-._]+$/)
+    .withMessage(
+      'Author field must only contain alphanumeric characters, periods, underscores, and/or hyphens.'
+    )
+    .isLength({ min: 4, max: 32 })
+    .withMessage('Author field must be 4-32 characters in length.')
     .escape(),
   body('content')
     .exists()
     .withMessage('Content field required.')
     .notEmpty()
     .withMessage('Content field must not be empty.')
+    .isLength({ min: 1, max: 2048 })
+    .withMessage('Content field must be 1-2048 characters in length.')
     .escape(),
 ];
 
