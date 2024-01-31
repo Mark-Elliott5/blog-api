@@ -92,8 +92,22 @@ export const commentGet = asyncHandler(async (req: IReq, res: IRes) => {
   res.json({ comment });
 });
 
-export const commentUpdate = asyncHandler(
-  async (req: IReq<ICrudComment>, res: IRes) => {
+export const commentUpdate = [
+  ...commentValidationFunctions,
+
+  asyncHandler(async (req: IReq<ICrudComment>, res: IRes) => {
+    const error = validationResult(req);
+
+    if (!error.isEmpty()) {
+      const errorArray = error.array().map((err) => err.msg);
+      const errorString = errorArray.reduce(
+        (accumulator, currentValue, currentIndex) =>
+          accumulator + `${currentIndex + 1}. ${currentValue} `,
+        ``
+      );
+      throw new Error(`Comment failed validation: ` + errorString.slice(0, -1));
+    }
+
     const url = req.params.commentUrl;
     const articleUrl = req.params.articleUrl;
     const article = await Article.findOne({ url: articleUrl }).exec();
@@ -110,8 +124,8 @@ export const commentUpdate = asyncHandler(
     res.json({
       message: 'Comment updated successfully.',
     });
-  }
-);
+  }),
+];
 
 export const commentDelete = asyncHandler(async (req: IReq, res: IRes) => {
   const commentUrl = req.params.commentUrl;
