@@ -13,24 +13,19 @@ import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
 
-export const authorValidationFunctions = [
+const authorValidationFunctions = [
   body('name')
-    .exists()
-    .withMessage('Name field required.')
-    .notEmpty()
-    .withMessage('Name field required.')
+    .optional()
     .trim()
-    .matches(/[^\w\s]|[\d]/)
+    .matches(/^[a-zA-Z0-9\s\p{P}]*$/)
     .withMessage(
-      'Name field must only contain alphanumeric characters or underscores.'
+      'Name field must only contain alphanumeric characters, periods, underscores, and/or spaces.'
     )
     .isLength({ min: 4, max: 40 })
     .withMessage('Name field must be 4-32 characters in length.')
     .escape(),
   body('username')
-    .exists()
-    .notEmpty()
-    .withMessage('Username field must not be empty.')
+    .optional()
     .isString()
     .withMessage('Username field must be a string')
     .not()
@@ -45,9 +40,7 @@ export const authorValidationFunctions = [
     .withMessage('Username field must be 4-32 characters in length.')
     .escape(),
   body('password')
-    .exists()
-    .notEmpty()
-    .withMessage('Password field must not be empty.')
+    .optional()
     .isString()
     .withMessage('Password field must be a string')
     .not()
@@ -63,6 +56,19 @@ export const authorValidationFunctions = [
     .escape(),
 ];
 
+const authorCreateValidationFunctions = [
+  body('name')
+    .exists()
+    .withMessage('Name field required.')
+    .notEmpty()
+    .withMessage('Name field required.'),
+  body('password')
+    .exists()
+    .withMessage('Password field required.')
+    .notEmpty()
+    .withMessage('Password field must not be empty.'),
+];
+
 export const authorsList = asyncHandler(async (req: IReq, res: IRes) => {
   const authors = await Author.find()
     .populate({ path: 'articles', select: 'title date' })
@@ -74,6 +80,8 @@ export const authorsList = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const authorCreate = [
+  ...authorCreateValidationFunctions,
+
   ...authorValidationFunctions,
 
   validateBody,
@@ -136,11 +144,12 @@ export const authorUpdate = [
     if (!author) {
       throw new Error('No matching authors found.');
     }
-    const newAuthor = {
-      name: req.body.name,
-      username: req.body.username,
-      password: req.body.password,
+    const newAuthor: IAuthor = {
+      name: req.body.name ?? author.name,
+      username: req.body.username ?? author.username,
+      password: req.body.password ?? author.password,
       url: author.url,
+      articles: author.articles,
     };
     if (author.name !== req.body.name) {
       const slug = slugify(req.body.name, {

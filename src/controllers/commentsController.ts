@@ -13,29 +13,33 @@ const asyncHandler = expressAsyncHandler;
 
 export const commentValidationFunctions = [
   body('author')
-    .exists()
-    .withMessage('Author field required.')
-    .notEmpty()
-    .withMessage('Author field must not be empty.')
-    .not()
-    .contains(/\s/)
-    .withMessage('Author field must not contain whitespace characters.')
+    .optional()
     .trim()
-    .matches(/^[a-zA-Z0-9\-._]+$/)
+    .matches(/^[a-zA-Z0-9\s\p{P}]*$/)
     .withMessage(
-      'Author field must only contain alphanumeric characters, periods, underscores, and/or hyphens.'
+      'Author field must only contain alphanumeric characters, periods, underscores, and/or spaces.'
     )
     .isLength({ min: 4, max: 32 })
     .withMessage('Author field must be 4-32 characters in length.')
     .escape(),
   body('content')
-    .exists()
-    .withMessage('Content field required.')
-    .notEmpty()
-    .withMessage('Content field must not be empty.')
+    .optional()
     .isLength({ min: 1, max: 2048 })
     .withMessage('Content field must be 1-2048 characters in length.')
     .escape(),
+];
+
+const commentCreateValidationFunctions = [
+  body('author')
+    .exists()
+    .withMessage('Author field required.')
+    .notEmpty()
+    .withMessage('Author field must not be empty.'),
+  body('content')
+    .exists()
+    .withMessage('Content field required.')
+    .notEmpty()
+    .withMessage('Content field must not be empty.'),
 ];
 
 export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
@@ -50,6 +54,8 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const commentCreate = [
+  ...commentCreateValidationFunctions,
+
   ...commentValidationFunctions,
 
   validateBody,
@@ -107,13 +113,18 @@ export const commentUpdate = [
     if (!article) {
       throw new Error('Article not found for supplied comment.');
     }
-    const comment = await Comment.updateOne(
-      { url, article: article._id },
-      req.body
-    ).exec();
-    if (comment.matchedCount === 0) {
+    const comment = await Comment.findOne({ url, article: article._id }).exec();
+    if (!comment) {
       throw new Error('No matching comments found.');
     }
+    const updatedComment: IComment = {
+      author: req.body.author ?? comment.author,
+      date: comment.date,
+      content: req.body.content ?? comment.content,
+      article: comment.article,
+      url: comment.url,
+    };
+    await comment.updateOne({ $set: { updatedComment } }).exec();
     res.json({
       message: 'Comment updated successfully.',
     });

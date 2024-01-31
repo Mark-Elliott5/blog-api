@@ -15,29 +15,29 @@ const asyncHandler = expressAsyncHandler;
 
 export const articleValidationFunctions = [
   body('title')
-    .exists()
-    .withMessage('Title field required.')
-    .notEmpty()
-    .withMessage('Title field must not be empty.')
-    .not()
-    .contains(/\s/)
-    .withMessage('Title field must not contain whitespace characters.')
+    .optional()
     .trim()
-    .matches(/^[a-zA-Z0-9\-._]+$/)
-    .withMessage(
-      'Title field must only contain alphanumeric characters, periods, underscores, and/or hyphens.'
-    )
     .isLength({ min: 4, max: 512 })
     .withMessage('Title field must be 4-512 characters in length.')
     .escape(),
   body('content')
-    .exists()
-    .withMessage('Content field required.')
-    .notEmpty()
-    .withMessage('Content field must not be empty.')
+    .optional()
     .isLength({ min: 8, max: 50000 })
     .withMessage('Content field must be 8-50000 characters in length.')
     .escape(),
+];
+
+const articleCreateValidationFunctions = [
+  body('content')
+    .exists()
+    .withMessage('Content field required.')
+    .notEmpty()
+    .withMessage('Content field must not be empty.'),
+  body('title')
+    .exists()
+    .withMessage('Title field required.')
+    .notEmpty()
+    .withMessage('Title field must not be empty.'),
 ];
 
 export const articlesList = asyncHandler(async (req: IReq, res: IRes) => {
@@ -55,6 +55,8 @@ export const articlesList = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const articleCreate = [
+  ...articleCreateValidationFunctions,
+
   ...articleValidationFunctions,
 
   validateBody,
@@ -64,7 +66,8 @@ export const articleCreate = [
       throw new Error('User not logged in.');
     }
     // if req.user._id is a string, we must use id instead of _id to query.
-    // because id casts to string.
+    // because id casts to string and _id casts to ObjectId. req.user._id is
+    // defined to be an ObjectId, however.
     const author = await Author.findOne({ _id: req.user._id }).exec();
     if (author) {
       const slug = slugify(req.body.title, {
@@ -123,18 +126,31 @@ export const articleUpdate = [
       throw new Error('User not logged in.');
     }
     const url = req.params.articleUrl;
-    const slug = slugify(req.body.title, {
-      remove: /[^\w\s-]/g,
-      lower: true,
-      trim: true,
-    });
-    const nano = nanoid(10);
-    const newUrl = `${slug}-${nano}`;
-    const newData = { url: newUrl, ...req.body };
-    const article = await Article.updateOne({ url }, newData).exec();
-    if (article.matchedCount === 0) {
+    const article = await Article.findOne({ url }).exec();
+    if (!article) {
       throw new Error('No matching articles found.');
     }
+    let newUrl = '';
+    if (!req.body.title) {
+      newUrl = article.url;
+    } else if (req.body.title !== article.title) {
+      const slug = slugify(req.body.title, {
+        remove: /[^\w\s-]/g,
+        lower: true,
+        trim: true,
+      });
+      const nano = nanoid(10);
+      newUrl = `${slug}-${nano}`;
+    }
+    const newArticle: IArticle = {
+      title: req.body.title ?? article.title,
+      author: article.author,
+      date: article.date,
+      content: req.body.content ?? article.content,
+      comments: article.comments,
+      url: newUrl,
+    };
+    await article.updateOne({ $set: newArticle }).exec();
     res.json({
       message: 'Article updated successfully.',
     });
