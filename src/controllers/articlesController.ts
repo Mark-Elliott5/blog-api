@@ -13,7 +13,7 @@ import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
 
-export const articleValidationFunctions = [
+const articleValidationFunctions = [
   body('title')
     .optional()
     .trim()
@@ -69,30 +69,31 @@ export const articleCreate = [
     // because id casts to string and _id casts to ObjectId. req.user._id is
     // defined to be an ObjectId, however.
     const author = await Author.findOne({ _id: req.user._id }).exec();
-    if (author) {
-      const slug = slugify(req.body.title, {
-        remove: /[^\w\s-]/g,
-        lower: true,
-        trim: true,
-      });
-      const nano = nanoid(10);
-      const url = `${slug}-${nano}`;
-      const articleParams: IArticle = {
-        title: req.body.title,
-        author: author._id,
-        date: new Date(),
-        content: req.body.content,
-        comments: new Types.Array(),
-        url,
-      };
-      const article = await Article.create(articleParams);
-      author.articles.push(article);
-      await author.save();
-      console.log(`Article created: ${req.body.title}`);
-      res.json({ message: 'Article created successfully' });
-    } else {
-      throw new Error('Author not found.');
+    if (!author) {
+      throw new Error(
+        'Author not found with user id. Author is needed to create an article.'
+      );
     }
+    const slug = slugify(req.body.title, {
+      remove: /[^\w\s-]/g,
+      lower: true,
+      trim: true,
+    });
+    const nano = nanoid(10);
+    const url = `${nano}-${slug}`;
+    const newArticle: IArticle = {
+      title: req.body.title,
+      author: author._id,
+      date: new Date(),
+      content: req.body.content,
+      comments: new Types.Array(),
+      url,
+    };
+    const article = await Article.create(newArticle);
+    author.articles.push(article);
+    await author.save();
+    console.log(`Article created: ${req.body.title}`);
+    res.json({ message: 'Article created successfully' });
   }),
 ];
 
@@ -130,17 +131,15 @@ export const articleUpdate = [
     if (!article) {
       throw new Error('No matching articles found.');
     }
-    let newUrl = '';
-    if (!req.body.title) {
-      newUrl = article.url;
-    } else if (req.body.title !== article.title) {
+    let newUrl = url;
+    if (req.body.title && req.body.title !== article.title) {
       const slug = slugify(req.body.title, {
         remove: /[^\w\s-]/g,
         lower: true,
         trim: true,
       });
       const nano = nanoid(10);
-      newUrl = `${slug}-${nano}`;
+      newUrl = `${nano}-${slug}`;
     }
     const newArticle: IArticle = {
       title: req.body.title ?? article.title,

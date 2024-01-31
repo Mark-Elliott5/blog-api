@@ -11,7 +11,7 @@ import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
 
-export const commentValidationFunctions = [
+const commentValidationFunctions = [
   body('author')
     .optional()
     .trim()

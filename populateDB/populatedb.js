@@ -59,7 +59,7 @@ async function articleCreate(index, title, author, date, content, comments) {
     trim: true,
   });
   const nano = nanoid(10);
-  const url = `${slug}-${nano}`;
+  const url = `${nano}-${slug}`;
 
   const article = new Article({
     title,
