@@ -1,15 +1,20 @@
 import expressAsyncHandler from 'express-async-handler';
-// this way of importing is necessary to circumvent tree shaking
-// import '../types/mongoose/Author';
 import { Article } from '../types/mongoose/Article';
 import '../types/mongoose/Comment';
 import { IReq, IRes } from '../types/types';
 import { Comment, IComment, ICrudComment } from '../types/mongoose/Comment';
 import { nanoid } from 'nanoid';
 import { body } from 'express-validator';
+import rateLimit from 'express-rate-limit';
 import validateBody from '../middleware/validateBody';
 
 const asyncHandler = expressAsyncHandler;
+
+// 1 request attempt per 10 seconds
+const limiter = rateLimit({
+  windowMs: 10 * 1000,
+  max: 1,
+});
 
 const commentValidationFunctions = [
   body('author')
@@ -54,6 +59,8 @@ export const commentsList = asyncHandler(async (req: IReq, res: IRes) => {
 });
 
 export const commentCreate = [
+  limiter,
+
   ...commentCreateValidationFunctions,
 
   ...commentValidationFunctions,

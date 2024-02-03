@@ -28,10 +28,6 @@ authorsRouter.delete(
 
 authorsRouter.get('/', authorsList);
 
-authorsRouter.post(
-  '/',
-  passport.authenticate('jwt', { session: false }),
-  authorCreate
-);
+authorsRouter.post('/', authorCreate);
 
 export default authorsRouter;
