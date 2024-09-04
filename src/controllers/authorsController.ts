@@ -71,6 +71,7 @@ const authorCreateValidationFunctions = [
 
 export const authorsList = asyncHandler(async (req: IReq, res: IRes) => {
   const authors = await Author.find()
+    .select('-password')
     .populate({ path: 'articles', select: 'title date' })
     .exec();
   if (authors.length === 0) {
